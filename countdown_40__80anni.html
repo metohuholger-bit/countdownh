@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Countdown Anni</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #080810;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(230,57,70,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(100,100,255,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #e63946;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .toggle-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 30px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .toggle-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    padding: 10px 28px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .toggle-btn.active {
+    background: #e63946;
+    color: white;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+    color: #555;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+
+  .input-row label { font-size: 0.85rem; color: #888; letter-spacing: 1px; }
+
+  input[type="date"] {
+    background: #111118;
+    border: 1px solid #333;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    color-scheme: dark;
+  }
+
+  input[type="date"]:focus { border-color: #e63946; }
+
+  button.avvia {
+    background: #e63946;
+    border: none;
+    color: white;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  button.avvia:hover { background: #c1121f; }
+  button.avvia:active { transform: scale(0.97); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .box {
+    background: #0e0e1a;
+    border: 1px solid #1e1e30;
+    border-radius: 14px;
+    padding: 22px 10px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .box:hover { border-color: #333; }
+
+  .box .value {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 700;
+    color: #e63946;
+    line-height: 1;
+  }
+
+  .box .label {
+    font-size: 0.65rem;
+    color: #444;
+    margin-top: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .box-minutes {
+    grid-column: 1 / -1;
+    background: #0d0010;
+    border-color: #e6394640;
+    padding: 24px;
+  }
+
+  .box-minutes .value {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    color: #ff6b6b;
+  }
+
+  .box-minutes .label { color: #e6394680; font-size: 0.7rem; }
+
+  .pulse { animation: pulse 1s ease-in-out; }
+  @keyframes pulse { 0% { color: #ff9999; } 100% { color: #e63946; } }
+
+  .done-msg {
+    display: none;
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    color: #4ecdc4;
+    text-align: center;
+    padding: 40px;
+    border: 1px solid #4ecdc440;
+    border-radius: 16px;
+    background: #001a18;
+  }
+
+  .progress-bar {
+    width: 100%;
+    max-width: 560px;
+    height: 4px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e63946, #ff6b6b);
+    border-radius: 2px;
+    transition: width 1s linear;
+    width: 0%;
+  }
+
+  .age-label {
+    font-size: 0.7rem;
+    color: #444;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>⏳ COUNTDOWN</h1>
+
+<div class="toggle-row">
+  <button class="toggle-btn active" id="btn40" onclick="setTarget(40)">40 ANNI</button>
+  <button class="toggle-btn" id="btn80" onclick="setTarget(80)">80 ANNI</button>
+</div>
+
+<p class="subtitle" id="subtitle">ai 40 anni</p>
+
+<div class="input-row">
+  <label>Data di nascita:</label>
+  <input type="date" id="bd" />
+  <button class="avvia" onclick="start()">AVVIA</button>
+</div>
+
+<div class="progress-bar" id="progressBar" style="display:none">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+<div class="age-label" id="ageLabel"></div>
+
+<div class="grid" id="grid" style="display:none">
+  <div class="box"><div class="value" id="v-anni">-</div><div class="label">Anni</div></div>
+  <div class="box"><div class="value" id="v-mesi">-</div><div class="label">Mesi</div></div>
+  <div class="box"><div class="value" id="v-giorni">-</div><div class="label">Giorni</div></div>
+  <div class="box"><div class="value" id="v-ore">-</div><div class="label">Ore</div></div>
+  <div class="box"><div class="value" id="v-min">-</div><div class="label">Minuti</div></div>
+  <div class="box"><div class="value" id="v-sec">-</div><div class="label">Secondi</div></div>
+  <div class="box-minutes box"><div class="value" id="v-totmin">-</div><div class="label">⏱ Minuti Totali Rimanenti</div></div>
+</div>
+
+<div class="done-msg" id="done">🎉 Traguardo raggiunto!<br><br>Un risultato straordinario.</div>
+
+<script>
+  var iv = null;
+  var targetAge = 40;
+
+  window.onload = function() {
+    var savedAge = localStorage.getItem('countdown_age');
+    var savedDate = localStorage.getItem('countdown_birthdate');
+    if (savedAge) {
+      targetAge = parseInt(savedAge);
+      document.getElementById('btn40').classList.toggle('active', targetAge === 40);
+      document.getElementById('btn80').classList.toggle('active', targetAge === 80);
+      document.getElementById('subtitle').textContent = targetAge === 40 ? 'ai 40 anni' : 'agli 80 anni';
+    }
+    if (savedDate) {
+      document.getElementById('bd').value = savedDate;
+      start();
+    }
+  };
+
+  function setTarget(age) {
+    targetAge = age;
+    localStorage.setItem('countdown_age', age);
+    document.getElementById('btn40').classList.toggle('active', age === 40);
+    document.getElementById('btn80').classList.toggle('active', age === 80);
+    document.getElementById('subtitle').textContent = age === 40 ? 'ai 40 anni' : 'agli 80 anni';
+    var v = document.getElementById('bd').value;
+    if (v) start();
+  }
+
+  function start() {
+    var v = document.getElementById('bd').value;
+    if (!v) return;
+    localStorage.setItem('countdown_birthdate', v);
+    if (iv) clearInterval(iv);
+    tick(v);
+    iv = setInterval(function(){ tick(v); }, 500);
+  }
+
+  function setVal(id, val) {
+    var el = document.getElementById(id);
+    if (el.textContent !== String(val)) {
+      el.textContent = val;
+      el.classList.remove('pulse');
+      void el.offsetWidth;
+      el.classList.add('pulse');
+    }
+  }
+
+  function tick(bs) {
+    var birth = new Date(bs);
+    var target = new Date(bs);
+    target.setFullYear(target.getFullYear() + targetAge);
+    var now = new Date();
+    var diff = target - now;
+
+    var grid = document.getElementById('grid');
+    var done = document.getElementById('done');
+    var pb = document.getElementById('progressBar');
+    var pf = document.getElementById('progressFill');
+    var al = document.getElementById('ageLabel');
+
+    if (diff <= 0) {
+      grid.style.display = 'none';
+      done.style.display = 'block';
+      pb.style.display = 'none';
+      al.textContent = '';
+      clearInterval(iv);
+      return;
+    }
+
+    done.style.display = 'none';
+    grid.style.display = 'grid';
+    pb.style.display = 'block';
+
+    var totalLifeMs = target - birth;
+    var elapsed = now - birth;
+    var pct = Math.min(100, (elapsed / totalLifeMs) * 100);
+    pf.style.width = pct.toFixed(3) + '%';
+
+    var ageYears = Math.floor(elapsed / (365.25 * 86400 * 1000));
+    al.textContent = 'Età attuale: ' + ageYears + ' anni — ' + pct.toFixed(2) + '% del percorso completato';
+
+    var ts = Math.floor(diff / 1000);
+    var tm = Math.floor(diff / 60000);
+    setVal('v-anni', Math.floor(ts / (86400 * 365.25)));
+    setVal('v-mesi', Math.floor(ts / (86400 * 30)) % 12);
+    setVal('v-giorni', Math.floor(ts / 86400) % 30);
+    setVal('v-ore', Math.floor(ts / 3600) % 24);
+    setVal('v-min', Math.floor(ts / 60) % 60);
+    setVal('v-sec', ts % 60);
+    setVal('v-totmin', tm.toLocaleString('it-IT'));
+  }
+</script>
+</body>
+</html>
